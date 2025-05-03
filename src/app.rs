@@ -301,7 +301,7 @@ impl YtGUI {
                         }],
                         column![
                             row![
-                                text_input("", &self.config.download_folder.clone().to_string_lossy())
+                                text_input("", &self.config.download_folder.to_string_lossy())
                                     .on_input(Message::SelectDownloadFolderTextInput),
                                 button("Browse").on_press(Message::SelectDownloadFolder),
                             ]
@@ -335,7 +335,7 @@ impl YtGUI {
                         }],
                         column![
                             row![
-                                text_input("", &self.config.download_folder.clone().to_string_lossy())
+                                text_input("", &self.config.download_folder.to_string_lossy())
                                     .on_input(Message::SelectDownloadFolderTextInput),
                                 button("Browse").on_press(Message::SelectDownloadFolder),
                             ]

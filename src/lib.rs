@@ -202,8 +202,7 @@ impl YtGUI {
                 DownloadType::Audio => format!(
                     "{:?}:{:?}",
                     self.config.options.audio_quality, self.config.options.audio_format
-                ),
-                Tab::Extras => format!("{:?}", self.config.cookies_file),
+                )
             },
             self.config.download_folder.to_string_lossy()
         ) {
