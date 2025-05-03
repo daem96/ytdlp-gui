@@ -203,6 +203,32 @@ impl YtGUI {
                 let _ = self.progress.take();
                 let _ = self.download_message.take();
             }
+            Message::SelectCookieFile => {
+                if !self.is_choosing_cookies {
+                    self.is_choosing_cookies = true;
+
+                    return iced::Task::perform(
+                        choose_file(
+                            self.config
+                                .cookies_file
+                                .clone()
+                                .unwrap_or_else(|| "~/Cookies file".into()),
+                        ),
+                        Message::SelectedCookieFile,
+                    );
+                }
+            }
+            Message::SelectedCookieFile(file) => {
+                if let Some(path) = file {
+                    self.config.cookies_file = Some(path);
+                }
+                self.is_choosing_cookies = false;
+            }
+            Message::SelectCookiesTextInput(cookies_string) => {
+                // let path = PathBuf::from(cookies_string);
+
+                self.config.cookies_file = Some(cookies_string);
+            }
             Message::ToggleSaveWindowPosition(save_window_position) => {
                 self.config.save_window_position = save_window_position;
             }
