@@ -173,12 +173,11 @@ impl YtGUI {
                         args.push("--audio-quality");
                         args.push(self.config.options.audio_quality.options());
                     }
-                    Tab::Extras => {
-                        if let Some(cookies_file) = &self.config.cookies_file {
-                            args.push("--cookies");
-                            args.push(&cookies_file);
-                        }
-                    }
+                }
+                
+                if let Some(cookies_file) = &self.config.cookies_file {
+                    args.push("--cookies");
+                    args.push(cookies_file.to_str().unwrap());
                 }
 
                 let playlist_options =
@@ -209,30 +208,6 @@ impl YtGUI {
                 let _ = self.progress.take();
                 let _ = self.download_message.take();
             }
-            Message::SelectCookieFile => {
-                if !self.is_choosing_cookies {
-                    self.is_choosing_cookies = true;
-
-                    return iced::Task::perform(
-                        choose_file(
-                            self.config
-                                .cookies_file
-                                .clone()
-                                .unwrap_or_else(|| "~/Cookies file".into()),
-                        ),
-                        Message::SelectedCookieFile,
-                    );
-                }
-            }
-            Message::SelectedCookieFile(file) => {
-                if let Some(path) = file {
-                    self.config.cookies_file = Some(path);
-                }
-                self.is_choosing_cookies = false;
-            }
-            Message::SelectCookiesTextInput(cookies_string) => {
-                self.config.cookies_file = Some(cookies_string);
-            }
             Message::ToggleSaveWindowPosition(save_window_position) => {
                 self.config.save_window_position = save_window_position;
             }
@@ -256,6 +231,27 @@ impl YtGUI {
                 let path = PathBuf::from(file_string);
 
                 self.config.bin_path = Some(path);
+            }
+            Message::SelectCookiesFile => {
+                if !self.is_file_dialog_open {
+                    self.is_file_dialog_open = true;
+
+                    return iced::Task::perform(
+                        choose_file(self.config.cookies_file.clone().unwrap_or("~".into())),
+                        Message::SelectedCookiesFile,
+                    );
+                }
+            }
+            Message::SelectedCookiesFile(file) => {
+                if let Some(path) = file {
+                    self.config.cookies_file = Some(path);
+                }
+                self.is_file_dialog_open = false;
+            }
+            Message::SelectCookiesFileTextInput(cookies_string) => {
+                let path = PathBuf::from(cookies_string);
+
+                self.config.cookies_file = Some(path);
             }
         }
 
@@ -305,7 +301,7 @@ impl YtGUI {
                         }],
                         column![
                             row![
-                                text_input("", &self.config.download_folder.to_string_lossy())
+                                text_input("", &self.config.download_folder.clone().to_string_lossy())
                                     .on_input(Message::SelectDownloadFolderTextInput),
                                 button("Browse").on_press(Message::SelectDownloadFolder),
                             ]
@@ -339,7 +335,7 @@ impl YtGUI {
                         }],
                         column![
                             row![
-                                text_input("", &self.config.download_folder.to_string_lossy())
+                                text_input("", &self.config.download_folder.clone().to_string_lossy())
                                     .on_input(Message::SelectDownloadFolderTextInput),
                                 button("Browse").on_press(Message::SelectDownloadFolder),
                             ]
@@ -383,39 +379,28 @@ impl YtGUI {
                                 button("Browse").on_press(Message::SelectYtDlpBinPath),
                             ]
                             .spacing(SPACING)
-                            .align_y(iced::Alignment::Center)
-                        ]
-                        .width(Length::Fill)
-                        .spacing(20)
-                        .padding(20)
-                    )
-                )
-                .push(
-                    Tab::Extras,
-                    iced_aw::TabLabel::Text("Extras".to_string()),
-                    column![row![
-                        if let Some(download_message) = &self.download_message {
-                            self.show_download_message(download_message)
-                        } else {
-                            column![row![
-                                text("Cookie file: ").size(FONT_SIZE),
+                            .align_y(iced::Alignment::Center),
+                            row![
+                                text("Cookies file: "),
                                 text_input(
                                     "",
                                     &self
                                         .config
                                         .cookies_file
                                         .clone()
-                                        .unwrap_or_else(|| "~/Cookies file".into())
+                                        .unwrap_or("".into())
+                                        .to_string_lossy()
                                 )
-                                .on_input(Message::SelectCookiesTextInput),
-                                button("Browse").on_press(Message::SelectCookieFile),
+                                .on_input(Message::SelectCookiesFileTextInput),
+                                button("Browse").on_press(Message::SelectCookiesFile),
                             ]
-                            .width(iced::Length::Fill)
                             .spacing(SPACING)
-                            .align_y(iced::Alignment::Center)
-                            .padding(12)]
-                        }
-                    ]],
+                            .align_y(iced::Alignment::Center),
+                        ]
+                        .width(Length::Fill)
+                        .spacing(20)
+                        .padding(20)
+                    )
                 )
                 .set_active_tab(&self.active_tab)
                 .height(Length::Shrink)

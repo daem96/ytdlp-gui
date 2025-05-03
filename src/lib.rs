@@ -60,6 +60,9 @@ pub enum Message {
     SelectYtDlpBinPath,
     SelectedYtDlpBinPath(Option<PathBuf>),
     SelectYtDlpBitPathTextInput(String),
+    SelectCookiesFile,
+    SelectedCookiesFile(Option<PathBuf>),
+    SelectCookiesFileTextInput(String),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -103,6 +106,8 @@ pub struct Config {
     bin_path: Option<PathBuf>,
     #[serde(default = "download_folder_default")]
     download_folder: PathBuf,
+    #[serde(deserialize_with = "empty_string_as_none")]
+    cookies_file: Option<PathBuf>,
     #[serde(default)]
     pub save_window_position: bool,
     pub window_position: Option<WindowPosition>,
@@ -198,7 +203,6 @@ impl YtGUI {
                     "{:?}:{:?}",
                     self.config.options.audio_quality, self.config.options.audio_format
                 ),
-                Tab::Extras => format!("{:?}", self.config.cookies_file),
             },
             self.config.download_folder.to_string_lossy()
         ) {
